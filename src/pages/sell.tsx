@@ -1,19 +1,32 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { parse } from "path";
 import { useForm, SubmitHandler } from "react-hook-form"
+import { api } from "~/utils/api";
 
 type Inputs = {
     name: string
     description: string
-    price: number
+    price: string
 }
 
 export default function Sell() {
+    const createListing = api.listings.create.useMutation()
+    const router = useRouter();
+
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<Inputs>()
-    const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data)
+    const onSubmit: SubmitHandler<Inputs> = (data) => {
+        createListing.mutateAsync({
+            ...data,
+            price: parseFloat(data.price)
+        }).then(() => {
+            router.push("/")
+        })
+    }
 
     return (
         <>
@@ -24,7 +37,7 @@ export default function Sell() {
             </Head>
             <main className="flex min-h-screen flex-col items-center justify-center bg-gray-800">
                 <h1>Sell on Waiheke Place</h1>
-                <form className="flex flex-col gap 2" onSubmit={handleSubmit(onSubmit)}>
+                <form className="flex flex-col gap-2" onSubmit={handleSubmit(onSubmit)}>
                     <div>
                         <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name of Item:</label>
                         <input id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" {...register("name", { required: true })} />
@@ -37,7 +50,7 @@ export default function Sell() {
                         <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Price:</label>
                         <input id="price" type="number" step="0.01" defaultValue="0" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" {...register("price", { required: true })} />
                     </div>
-                    <div>
+                    <div className="flex items-center justify-center">
                         <button type="submit" className="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
                             <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
                                 List Item
